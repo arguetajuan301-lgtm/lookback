@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Top-Down Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e1012;--s1:#161a1d;--s2:#1d2124;--border:#2c3033;--border2:#3a4044;
+  --text:#dde2e6;--muted:#6b7880;--dim:#3d464c;
+  --htf:#4ade80;--ttf:#60a5fa;--ltf:#fb923c;
+  --htf-bg:rgba(74,222,128,.08);--ttf-bg:rgba(96,165,250,.08);--ltf-bg:rgba(251,146,60,.08);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --radius:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;padding:2rem 1.5rem}
+.app{max-width:780px;margin:0 auto}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.logo{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.today-badge{font-family:var(--mono);font-size:13px;color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:4px 12px}
+
+/* ── CONTROLS ── */
+.controls{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:flex-end}
+.ctrl-block{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:.65rem .9rem;min-width:160px}
+.ctrl-block label{display:block;font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.ctrl-block input[type="date"],.ctrl-block select{background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:var(--text);cursor:pointer;width:100%}
+.ctrl-block input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:pointer}
+.ctrl-block select option{background:#1d2124}
+
+/* ── LOOKBACK STRIP ── */
+.lb-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.lb-chip{border-radius:var(--radius);padding:5px 12px;font-family:var(--mono);font-size:11px;border:1px solid}
+.lb-chip.htf{color:var(--htf);background:var(--htf-bg);border-color:rgba(74,222,128,.2)}
+.lb-chip.ttf{color:var(--ttf);background:var(--ttf-bg);border-color:rgba(96,165,250,.2)}
+.lb-chip.ltf{color:var(--ltf);background:var(--ltf-bg);border-color:rgba(251,146,60,.2)}
+.lb-chip .chip-tf{font-weight:500;display:block;font-size:12px}
+.lb-chip .chip-range{font-size:10px;opacity:.7;margin-top:1px}
+
+/* ── JOURNAL ENTRIES ── */
+.sec-label{font-size:10px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.entry-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.entry-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);display:grid;grid-template-columns:90px 1fr;overflow:hidden}
+.entry-row.htf{border-left:3px solid var(--htf)}
+.entry-row.ttf{border-left:3px solid var(--ttf)}
+.entry-row.ltf{border-left:3px solid var(--ltf)}
+.entry-label{padding:.7rem .9rem;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.entry-tf{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
+.entry-role{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:.04em}
+.entry-input{width:100%;background:transparent;border:none;outline:none;padding:.7rem 1rem;font-family:var(--sans);font-size:13px;color:var(--text);resize:none;height:56px;line-height:1.6}
+.entry-input::placeholder{color:var(--dim)}
+
+/* ── ADDITIONAL FIELDS ── */
+.extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.extra-block{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:.7rem .9rem}
+.extra-block label{display:block;font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.extra-block input,.extra-block textarea{width:100%;background:transparent;border:none;outline:none;font-family:var(--sans);font-size:13px;color:var(--text)}
+.extra-block textarea{resize:none;height:52px;line-height:1.6}
+.extra-block input::placeholder,.extra-block textarea::placeholder{color:var(--dim)}
+
+/* ── ACTIONS ── */
+.actions{display:flex;gap:8px;margin-bottom:2rem}
+.btn{font-family:var(--mono);font-size:12px;letter-spacing:.05em;padding:8px 18px;border-radius:var(--radius);cursor:pointer;border:1px solid;transition:all .15s}
+.btn-save{background:transparent;border-color:var(--border2);color:var(--text)}
+.btn-save:hover{background:var(--s2);border-color:var(--htf);color:var(--htf)}
+.btn-clear{background:transparent;border-color:var(--border);color:var(--muted)}
+.btn-clear:hover{background:var(--s2);color:var(--text)}
+.btn-print{background:transparent;border-color:var(--border2);color:var(--muted)}
+.btn-print:hover{background:var(--s2);color:var(--ttf);border-color:var(--ttf)}
+
+/* ── SAVED LOG ── */
+.log-section{margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+.log-empty{font-family:var(--mono);font-size:12px;color:var(--dim);padding:.5rem 0}
+.log-entry{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.log-header{display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;border-bottom:1px solid var(--border);background:var(--s2)}
+.log-date{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.log-ticker{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)}
+.log-del{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;background:none;border:none}
+.log-del:hover{color:#f09595}
+.log-body{padding:.7rem .9rem;display:grid;grid-template-columns:90px 1fr;gap:4px 0;font-size:12px}
+.log-tf{font-family:var(--mono);font-size:11px;padding:.3rem 0;color:var(--muted);border-bottom:1px solid var(--border)}
+.log-read{padding:.3rem 0;border-bottom:1px solid var(--border);color:var(--text);line-height:1.5}
+.log-tf:last-of-type,.log-read:last-of-type{border-bottom:none}
+.log-extras{padding:.5rem .9rem;border-top:1px solid var(--border);font-size:11px;color:var(--muted);font-family:var(--mono);display:flex;gap:1rem;flex-wrap:wrap}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;color:#111;padding:1rem}
+  .controls,.actions,.log-section,.topbar{display:none}
+  .print-only{display:block!important}
+  .entry-row{border-color:#ccc;break-inside:avoid}
+  .entry-input{color:#111}
+  .lb-chip{border-color:#ccc;color:#333;background:#f5f5f5}
+  .extra-block{border-color:#ccc}
+  .extra-block input,.extra-block textarea{color:#111}
+}
+.print-only{display:none}
+.print-header{font-family:var(--mono);font-size:11px;color:#999;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <span class="logo">Top-Down Journal // ES1!</span>
+    <span class="today-badge" id="todayBadge">—</span>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl-block">
+      <label>Session date</label>
+      <input type="date" id="sessionDate"/>
+    </div>
+    <div class="ctrl-block">
+      <label>Timeframe mode</label>
+      <select id="modeSelect">
+        <option value="3tf">3TF — 4H / 1H / 5min</option>
+        <option value="5tf">5TF — Weekly / Daily / 4H / 1H / 5min</option>
+      </select>
+    </div>
+    <div class="ctrl-block" style="min-width:120px">
+      <label>Instrument</label>
+      <input type="text" id="tickerInput" placeholder="ES1!" style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:var(--text);width:100%"/>
+    </div>
+  </div>
+
+  <!-- lookback chips -->
+  <div class="lb-strip" id="lbStrip"></div>
+
+  <!-- journal entries -->
+  <div class="sec-label">Top-down read — one sentence per timeframe</div>
+  <div class="entry-list" id="entryList"></div>
+
+  <!-- extra fields -->
+  <div class="extra-grid">
+    <div class="extra-block">
+      <label>Overall bias</label>
+      <input type="text" id="biasInput" placeholder="e.g. Bullish above 5420, watching for pullback entry"/>
+    </div>
+    <div class="extra-block">
+      <label>Key levels to watch</label>
+      <input type="text" id="levelsInput" placeholder="e.g. 5420 support, 5480 resistance"/>
+    </div>
+    <div class="extra-block" style="grid-column:1/-1">
+      <label>Setup / trigger (what would make you act)</label>
+      <textarea id="setupInput" placeholder="e.g. Failed breakdown on 5min below 5420 with base forming above the level, upper Keltner band intact on 1H..."></textarea>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-save" onclick="saveEntry()">Save entry</button>
+    <button class="btn btn-print" onclick="window.print()">Print / export PDF</button>
+    <button class="btn btn-clear" onclick="clearForm()">Clear</button>
+  </div>
+
+  <!-- saved log -->
+  <div class="log-section">
+    <div class="sec-label">Saved entries</div>
+    <div id="logList"><div class="log-empty">No entries yet.</div></div>
+  </div>
+
+</div>
+
+<script>
+const SETUPS = {
+  '3tf': [
+    {tf:'4H',   role:'HTF', type:'htf', dmin:60,  dmax:120},
+    {tf:'1H',   role:'TTF', type:'ttf', dmin:14,  dmax:28},
+    {tf:'5min', role:'LTF', type:'ltf', dmin:1,   dmax:3},
+  ],
+  '5tf': [
+    {tf:'Weekly', role:'HTF',        type:'htf', dmin:365, dmax:730},
+    {tf:'Daily',  role:'Upper TTF',  type:'htf', dmin:90,  dmax:180},
+    {tf:'4H',     role:'Lower TTF',  type:'ttf', dmin:60,  dmax:120},
+    {tf:'1H',     role:'Upper LTF',  type:'ttf', dmin:14,  dmax:28},
+    {tf:'5min',   role:'LTF',        type:'ltf', dmin:1,   dmax:3},
+  ]
+};
+
+let entries = JSON.parse(localStorage.getItem('td_journal') || '[]');
+
+function sub(date, days) {
+  const d = new Date(date); d.setDate(d.getDate()-days); return d;
+}
+function fmt(d) { return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function fmtShort(d) { return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fmtDay(d) { return d.toLocaleDateString('en-US',{weekday:'long'}); }
+function getDate() {
+  const v = document.getElementById('sessionDate').value;
+  return v ? new Date(v+'T12:00:00') : null;
+}
+
+function renderChips() {
+  const date = getDate(); if(!date) return;
+  const key = document.getElementById('modeSelect').value;
+  const tfs = SETUPS[key];
+  document.getElementById('lbStrip').innerHTML = tfs.map(t => {
+    const from = sub(date, t.dmax);
+    return `<div class="lb-chip ${t.type}">
+      <span class="chip-tf">${t.tf} · ${t.role}</span>
+      <span class="chip-range">${fmtShort(from)} → ${fmt(date)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderEntryInputs() {
+  const key = document.getElementById('modeSelect').value;
+  const tfs = SETUPS[key];
+  document.getElementById('entryList').innerHTML = tfs.map((t,i) =>
+    `<div class="entry-row ${t.type}">
+      <div class="entry-label">
+        <div class="entry-tf">${t.tf}</div>
+        <div class="entry-role">${t.role}</div>
+      </div>
+      <textarea class="entry-input tf-read" data-tf="${t.tf}" data-role="${t.role}" placeholder="One sentence: what is ${t.tf} doing structurally right now?"></textarea>
+    </div>`
+  ).join('');
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  if(!entries.length){ el.innerHTML='<div class="log-empty">No entries yet.</div>'; return; }
+  el.innerHTML = [...entries].reverse().map((e,ri) => {
+    const i = entries.length-1-ri;
+    const reads = e.reads.map(r =>
+      `<div class="log-tf">${r.tf} · ${r.role}</div><div class="log-read">${r.read || '<span style="color:var(--dim)">—</span>'}</div>`
+    ).join('');
+    const extras = [];
+    if(e.bias) extras.push(`Bias: ${e.bias}`);
+    if(e.levels) extras.push(`Levels: ${e.levels}`);
+    if(e.setup) extras.push(`Setup: ${e.setup}`);
+    return `<div class="log-entry">
+      <div class="log-header">
+        <span class="log-date">${e.date} · ${e.mode} · ${e.instrument || 'ES1!'}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="log-del" onclick="deleteEntry(${i})">delete</button>
+        </div>
+      </div>
+      <div class="log-body">${reads}</div>
+      ${extras.length ? `<div class="log-extras">${extras.join(' &nbsp;|&nbsp; ')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function saveEntry() {
+  const date = getDate();
+  if(!date){ alert('Pick a session date first.'); return; }
+  const reads = [...document.querySelectorAll('.tf-read')].map(el => ({
+    tf: el.dataset.tf, role: el.dataset.role, read: el.value.trim()
+  }));
+  const entry = {
+    date: fmt(date),
+    mode: document.getElementById('modeSelect').value,
+    instrument: document.getElementById('tickerInput').value || 'ES1!',
+    reads,
+    bias:   document.getElementById('biasInput').value.trim(),
+    levels: document.getElementById('levelsInput').value.trim(),
+    setup:  document.getElementById('setupInput').value.trim(),
+    saved:  new Date().toISOString()
+  };
+  entries.push(entry);
+  localStorage.setItem('td_journal', JSON.stringify(entries));
+  renderLog();
+  // flash save button
+  const btn = document.querySelector('.btn-save');
+  btn.textContent='Saved'; btn.style.color='var(--htf)'; btn.style.borderColor='var(--htf)';
+  setTimeout(()=>{ btn.textContent='Save entry'; btn.style.color=''; btn.style.borderColor=''; }, 1500);
+}
+
+function deleteEntry(i) {
+  if(!confirm('Delete this entry?')) return;
+  entries.splice(i,1);
+  localStorage.setItem('td_journal', JSON.stringify(entries));
+  renderLog();
+}
+
+function clearForm() {
+  document.querySelectorAll('.tf-read').forEach(el=>el.value='');
+  document.getElementById('biasInput').value='';
+  document.getElementById('levelsInput').value='';
+  document.getElementById('setupInput').value='';
+}
+
+function init() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('sessionDate').value = todayStr;
+  document.getElementById('todayBadge').textContent = fmt(now) + ' · ' + fmtDay(now);
+  renderChips(); renderEntryInputs(); renderLog();
+}
+
+document.getElementById('sessionDate').addEventListener('change', ()=>{ renderChips(); });
+document.getElementById('modeSelect').addEventListener('change', ()=>{ renderChips(); renderEntryInputs(); });
+init();
+</script>
+</body>
+</html>
